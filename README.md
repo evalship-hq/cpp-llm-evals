@@ -7,9 +7,10 @@ A C++ support bot whose AI call is tested on every pull request with [tinyeval](
 Clone this repo, or use it as a template. You need CMake, a C++20 compiler, libcurl and nlohmann/json (`brew install cmake nlohmann-json` on macOS). Then:
 
 ```sh
+brew install evalship-hq/tap/tinyeval
 export ANTHROPIC_API_KEY=sk-ant-...
 cmake -B build && cmake --build build
-./tinyeval
+tinyeval
 ```
 
 ```
@@ -21,6 +22,8 @@ support
 All 3 evals passed (eval-results.json)
 ```
 
+Without Homebrew, `curl -fsSL https://tinyeval.com/install.sh | sh` writes `./tinyeval`, and you run that. Don't commit it: `.gitignore` already lists it. `brew upgrade tinyeval` updates the Homebrew install.
+
 ## What's here
 
 - `src/support.cpp`: the bot. `support::answer(client, message)` sends the message to Claude and returns the reply. C++ has no official Anthropic SDK, so it calls the Messages API with libcurl and nlohmann/json.
@@ -29,8 +32,8 @@ All 3 evals passed (eval-results.json)
 - `src/evalworker.cpp`: the tinyeval worker. It builds the `Client` once, then answers each test case.
 - `CMakeLists.txt`: the `support` library and the `evalworker` executable.
 - `evals/support.sh`: three test cases, each checked by a regex, a judge or both.
-- `tinyeval`: the eval runner, one bash file.
 - `.github/workflows/evals.yml`: runs the evals on every pull request and push to main.
+- `.github/dependabot.yml`: a weekly pull request for each new release of the actions, tinyeval's among them.
 
 ## Use it for your app
 
@@ -44,9 +47,9 @@ When the API call fails for a reason that isn't your code, such as a missing key
 
 Add `ANTHROPIC_API_KEY` as a repository secret under **Settings** > **Secrets and variables** > **Actions**. The bot and tinyeval's judge both use it.
 
-The workflow installs libcurl and nlohmann/json with apt, then builds with CMake. It runs each test case 3 times, and a test case passes when at least 2 of the 3 pass. A failing eval fails the job, so you can require it before merging. The results upload as the `eval-results` artifact, also when an eval fails.
+The workflow installs libcurl and nlohmann/json with apt, then builds with CMake. [tinyeval-action](https://github.com/evalship-hq/tinyeval-action) runs each test case 3 times, and a test case passes when at least 2 of the 3 pass. A failing eval fails the job, so you can require it before merging. The results upload as the `eval-results` artifact, also when an eval fails.
 
-Without the secret, the workflow skips the evals and prints a notice. Pull requests from forks get no secrets, so their evals skip too.
+Without the secret, the workflow skips the evals and prints a notice. Pull requests from forks get no secrets, so their evals skip too. Dependabot's pull requests get none either, so a tinyeval update skips its evals until you merge it to main.
 
 ## Compare pull requests with main
 
